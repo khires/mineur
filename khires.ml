@@ -39,8 +39,8 @@ and board =
 let img_assoc v =
   match v with
   | Flag -> js "sprites/normal.png"
-  | Mine -> js "sprites/normal.png"
-  | Unknown -> js "sprites/normal.png"
+  | Mine -> js "sprites/empty.png"
+  | Unknown -> js "sprites/empty.png"
 
 let set_cell state x y v =
   state.map.(y).(x) <- v;
@@ -73,13 +73,11 @@ let init_table board board_div =
       print_int x;
       imgs := img :: !imgs;
       img##.src := js "sprites/normal.png";
-      img##.onclick :=
-        Html.handler (fun (x) -> let button = Js.Optdef.get (x##.which) (fun _ -> Html.No_button) in
+      img##.onclick := 
+        Html.handler (fun (x) -> let button = Js.to_bool x##.ctrlKey in
             (match button with
-             | No_button -> img##.src := js "sprites/bomb.png"
-             | Left_button -> img##.src := js "sprites/flag.png"
-             | Middle_button -> img##.src := js "sprites/bomb.png"
-             | Right_button-> img##.src := js "sprites/bomb.png"
+             | false -> img##.src := js "sprites/flag.png"
+             | true -> img##.src := js "sprites/bomb.png"
             );
             Js._false);
       Dom.appendChild buf img

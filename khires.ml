@@ -55,25 +55,28 @@ let init_table board board_div =
       img##.src := js "sprites/normal.png";
       img##.onclick := 
         Html.handler (fun (x') -> let button = Js.to_bool x'##.ctrlKey in
-            (match button with
-             | false ->
-               img##.src := js "sprites/bomb.png";
-               print_endline "You Explose"
-             | true ->
-               if board.map.(y).(x) = Mine then (
-                 board.map.(y).(x) <- Flag;
-                 img##.src := js "sprites/flag.png";
-                 (* Check for Victory *)
-                 board.nb_flag <- board.nb_flag + 1;
-                 if board.nb_flag = (board.cols * board.rows)
-                   then print_endline "Vicory" else ()
-               ) else (
-                 board.map.(y).(x) <- Mine;
-                 img##.src := js "sprites/normal.png";
-                 board.nb_flag <- board.nb_flag - 1
-               )
-            );
-            Js._false);
+                       (match button with
+                        | false ->
+                          board.map.(y).(x) <- Flag;
+                          img##.src := js "sprites/bomb.png";
+                          Html.window##alert (js "YOU LOSE")
+                        | true ->
+                          if board.map.(y).(x) = Flag then (Html.window##alert (js "Loser"))
+                          else
+                          if board.map.(y).(x) = Mine then (
+                            board.map.(y).(x) <- Flag;
+                            img##.src := js "sprites/flag.png";
+                            (* Check for Victory *)
+                            board.nb_flag <- board.nb_flag + 1;
+                            if board.nb_flag = (board.cols * board.rows)
+                            then Html.window##alert (js "Victory") else ()
+                          ) else (
+                            board.map.(y).(x) <- Mine;
+                            img##.src := js "sprites/normal.png";
+                            board.nb_flag <- board.nb_flag - 1
+                          )
+                       );
+                       Js._false);
       Dom.appendChild buf img
     done;
     Dom.appendChild buf (Html.createBr document);
@@ -90,7 +93,7 @@ let onload _ =
   let main = Js.Opt.get (document##getElementById (js "main")) (fun () -> assert false) in
   let div = Html.createDiv document in
   Dom.appendChild main div;
-  run div 2 2;
+  run div 6 6;
   Js._false
 
 let _ = Html.window##.onload := Html.handler onload

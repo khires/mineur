@@ -18,4 +18,5 @@
 
 (alias
  (name default)
- (deps khires.js index.html))
+ (deps khires.js index.html
+ (glob_files sprites/*.{png,svg})))

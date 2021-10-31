@@ -26,42 +26,22 @@ let js = Js.string
 
 let document = Html.window##.document
 
-type cell = Flag | Mine | Unknown
+type cell = Flag | Mine
 
 and board =
-  { 
-    rows : int
+  { rows : int
   ; cols : int
+  ; imgs  : Html.imageElement Js.t array array
   ; map : cell array array
-  ; imgs : Html.imageElement Js.t array array
+  ; mutable nb_flag : int
   }
 
-let img_assoc v =
-  match v with
-  | Flag -> js "sprites/normal.png"
-  | Mine -> js "sprites/empty.png"
-  | Unknown -> js "sprites/empty.png"
-
-let set_cell state x y v =
-  state.map.(y).(x) <- v;
-  state.imgs.(y).(x)##.src := img_assoc v
-
-let draw_cell img cell =
-  img##.src := img_assoc cell
-
-let draw_board board=
-  for y = 0 to board.rows -1 do
-    for x = 0 to board.cols -1 do
-      draw_cell board.imgs.(y).(x) board.map.(x).(y)
-    done
-  done
-
 let create_board col row =
-  let total = col * row in
-  { rows = row;
-    cols = col;
-    map = Array.make total [||];
-    imgs = Array.make total [||];
+  { rows = row
+  ; cols = col
+  ; map  = Array.make_matrix row col Mine
+  ; imgs = Array.make row [||]
+  ; nb_flag = 0
   }
 
 let init_table board board_div =
@@ -74,10 +54,24 @@ let init_table board board_div =
       imgs := img :: !imgs;
       img##.src := js "sprites/normal.png";
       img##.onclick := 
-        Html.handler (fun (x) -> let button = Js.to_bool x##.ctrlKey in
+        Html.handler (fun (x') -> let button = Js.to_bool x'##.ctrlKey in
             (match button with
-             | false -> img##.src := js "sprites/flag.png"
-             | true -> img##.src := js "sprites/bomb.png"
+             | false ->
+               img##.src := js "sprites/bomb.png";
+               print_endline "You Explose"
+             | true ->
+               if board.map.(y).(x) = Mine then (
+                 board.map.(y).(x) <- Flag;
+                 img##.src := js "sprites/flag.png";
+                 (* Check for Victory *)
+                 board.nb_flag <- board.nb_flag + 1;
+                 if board.nb_flag = (board.cols * board.rows)
+                   then print_endline "Vicory" else ()
+               ) else (
+                 board.map.(y).(x) <- Mine;
+                 img##.src := js "sprites/normal.png";
+                 board.nb_flag <- board.nb_flag - 1
+               )
             );
             Js._false);
       Dom.appendChild buf img
@@ -96,7 +90,7 @@ let onload _ =
   let main = Js.Opt.get (document##getElementById (js "main")) (fun () -> assert false) in
   let div = Html.createDiv document in
   Dom.appendChild main div;
-  run div 5 10;
+  run div 2 2;
   Js._false
 
 let _ = Html.window##.onload := Html.handler onload
